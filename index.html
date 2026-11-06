@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101522">
+  <title>Rally Pong</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="wordmark" href="./" aria-label="Rally Pong home"><span class="brand-mark" aria-hidden="true">●</span> RALLY<span class="wordmark-light">PONG</span></a>
+      <span class="game-tag">LOCAL MULTIPLAYER</span>
+    </header>
+
+    <section class="intro" aria-labelledby="game-title">
+      <div>
+        <p class="eyebrow">ONE SCREEN. TWO PLAYERS. BIG RALLIES.</p>
+        <h1 id="game-title">Rally Pong</h1>
+        <p class="subtitle">Keep it alive. Make it count.</p>
+      </div>
+      <button id="start-button" class="start-button" type="button">Start game <span aria-hidden="true">↗</span></button>
+    </section>
+
+    <section class="scoreboard" aria-label="Scoreboard">
+      <div class="player-score left-score">
+        <span class="player-label"><span class="player-dot cyan"></span> PLAYER 1</span>
+        <strong id="left-score" aria-label="Player 1 score">0</strong>
+        <span class="player-controls">W / S</span>
+      </div>
+      <div class="match-status">
+        <span class="status-pill"><span class="status-light" id="status-light"></span><span id="status-text">READY</span></span>
+        <span class="versus">VS</span>
+      </div>
+      <div class="player-score right-score">
+        <span class="player-label"><span class="player-dot coral"></span> PLAYER 2</span>
+        <strong id="right-score" aria-label="Player 2 score">0</strong>
+        <span class="player-controls">↑ / ↓</span>
+      </div>
+    </section>
+
+    <section class="court-wrap" aria-label="Pong court">
+      <canvas id="game" width="960" height="540" aria-label="Pong game. Player 1 uses W and S, Player 2 uses the up and down arrow keys."></canvas>
+      <div id="overlay" class="overlay">
+        <div class="overlay-card">
+          <span class="overlay-icon" aria-hidden="true">↗</span>
+          <h2 id="overlay-title">Ready to rally?</h2>
+          <p id="overlay-message">Press Start or Space to serve.</p>
+          <button id="overlay-button" type="button">Start rally</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-info" aria-label="Rally details">
+      <div class="rally-info">
+        <span class="info-label">CURRENT RALLY</span>
+        <span class="rally-count"><strong id="rally-count">0</strong> <span>hits</span></span>
+      </div>
+      <div class="bonus-info">
+        <span class="bonus-icon" aria-hidden="true">✦</span>
+        <div><strong>LONG RALLY BONUS</strong><span>10+ hits = 2 points</span></div>
+        <div class="bonus-meter" aria-label="Rally progress to bonus"><span id="bonus-progress"></span></div>
+      </div>
+      <div class="win-info"><span class="info-label">TO WIN</span><strong>11 <span>by 2</span></strong></div>
+    </section>
+
+    <footer class="footer">
+      <div class="controls"><span><kbd>W</kbd><kbd>S</kbd> move Player 1</span><span><kbd>↑</kbd><kbd>↓</kbd> move Player 2</span></div>
+      <span class="footer-note">First to 11, win by 2. The rally bonus kicks in at 10 paddle hits.</span>
+    </footer>
+  </main>
+  <script src="game.js" defer></script>
+</body>
+</html>
