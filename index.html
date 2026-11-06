@@ -4,437 +4,51 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101522">
-  <title>Rally Pong</title>
+  <title>Rally Pong — No-JavaScript Edition</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+    :root{color-scheme:dark;--bg:#101522;--panel:#171e2d;--line:#2b3547;--muted:#9aa6b8;--text:#f2f5fa;--cyan:#66e4dc;--coral:#ff8a78;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}body{margin:0;min-width:320px;min-height:100vh;background:radial-gradient(ellipse at 50% -25%,#222b3c 0,var(--bg) 58%);color:var(--text)}
+    .shell{width:min(100% - 32px,960px);margin:auto;padding:24px 0 48px}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff1a;padding-bottom:18px}.brand{font-weight:800;letter-spacing:.1em}.brand b{color:var(--cyan)}.tag,.eyebrow,.label,.turn-number{font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.12em}.tag{font-size:10px;color:var(--muted)}
+    .intro{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:26px 0 20px}.eyebrow{font-size:10px;color:var(--cyan);margin:0 0 8px}h1{font-size:clamp(34px,6vw,48px);letter-spacing:-.05em;line-height:1;margin:0}.subtitle{color:var(--muted);margin:9px 0 0;font-size:14px}.rule-pill{border:1px solid #3c4657;border-radius:20px;padding:8px 12px;color:#d9c18c;font-size:11px;white-space:nowrap}
+    .scoreboard{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 20px;counter-reset:p1score p2score}.score{display:flex;align-items:center;justify-content:space-between;background:#171e2d;border:1px solid var(--line);border-radius:10px;padding:12px 16px}.score-name{font-size:11px;letter-spacing:.1em;color:#c3ccda}.score-name i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--cyan)}.score.p2 .score-name i{background:var(--coral)}.score-value{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}.score-value::after{content:counter(p1score)}.score.p2 .score-value::after{content:counter(p2score)}
+    .instructions{padding:14px 16px;margin-bottom:18px;border:1px solid #344052;border-radius:10px;background:#1a2231;color:#c6cfdb;font-size:13px;line-height:1.55}.instructions strong{color:var(--text)}
+    .round{counter-increment:none;margin:14px 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:rgba(23,30,45,.88)}.round h2{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:15px}.turn-number{font-size:10px;color:#8794a8}.turn-label{font-size:10px;color:#96a3b6;font-weight:500;margin-left:auto}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.choice-group{min-width:0;margin:0;padding:12px;border:1px solid #344052;border-radius:9px}.choice-group legend{padding:0 6px;font-size:11px;color:#bac4d2}.choice-group legend strong{color:var(--text)}.options{display:flex;flex-wrap:wrap;gap:7px}.options input{position:absolute;width:1px;height:1px;opacity:0}.options label{display:inline-block;padding:8px 10px;border:1px solid #3b4658;border-radius:7px;background:#121927;color:#b5c0d0;font-size:11px;cursor:pointer;user-select:none}.options label:hover{border-color:#78879c;color:white}.options input:checked+label{border-color:var(--cyan);background:#66e4dc18;color:var(--cyan)}.shooter-two .options input:checked+label{border-color:var(--coral);background:#ff8a7818;color:var(--coral)}.options input:focus-visible+label{outline:2px solid white;outline-offset:2px}.outcome{display:none;margin:12px 0 0;padding:10px 12px;border-radius:7px;background:#111824;color:#dce4ee;font-size:12px}.outcome .saved{display:none;color:var(--cyan)}.outcome .through{color:var(--coral)}
+    .round:has(.shot:checked):has(.guard:checked) .outcome{display:block}
+    .round:has(.shot[value="top"]:checked):has(.guard[value="top"]:checked) .outcome .through,.round:has(.shot[value="middle"]:checked):has(.guard[value="middle"]:checked) .outcome .through,.round:has(.shot[value="bottom"]:checked):has(.guard[value="bottom"]:checked) .outcome .through{display:none}
+    .round:has(.shot[value="top"]:checked):has(.guard[value="top"]:checked) .outcome .saved,.round:has(.shot[value="middle"]:checked):has(.guard[value="middle"]:checked) .outcome .saved,.round:has(.shot[value="bottom"]:checked):has(.guard[value="bottom"]:checked) .outcome .saved{display:inline}
 
-    :root {
-      color-scheme: dark;
-      --bg: #101522;
-      --panel: #171e2d;
-      --panel-2: #1c2535;
-      --line: #2b3547;
-      --muted: #8b96a9;
-      --text: #f2f5fa;
-      --cyan: #66e4dc;
-      --coral: #ff8a78;
-      font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      min-width: 320px;
-      min-height: 100vh;
-      margin: 0;
-      background: radial-gradient(ellipse at 50% -25%, #222b3c 0, var(--bg) 58%);
-      color: var(--text);
-    }
-    button { font: inherit; }
-    .game-shell { width: min(100% - 40px, 1120px); margin: 0 auto; padding: 28px 0 24px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 30px; border-bottom: 1px solid rgba(139,150,169,.16); }
-    .wordmark { color: var(--text); text-decoration: none; font-size: 15px; font-weight: 800; letter-spacing: .11em; }
-    .brand-mark { display: inline-block; margin-right: 7px; color: var(--cyan); font-size: 13px; }
-    .wordmark-light { color: #aab4c4; font-weight: 500; }
-    .game-tag, .eyebrow, .player-label, .info-label, .bonus-info strong, .status-pill, .player-controls, .footer-note { font-family: 'DM Mono', monospace; }
-    .game-tag { color: var(--muted); font-size: 10px; letter-spacing: .16em; }
-    .intro { display: flex; align-items: end; justify-content: space-between; padding: 28px 0 22px; }
-    .eyebrow { margin: 0 0 8px; color: var(--cyan); font-size: 10px; letter-spacing: .14em; }
-    h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -.055em; }
-    .subtitle { margin: 7px 0 0; color: #a0aabd; font-size: 14px; }
-    .start-button, .overlay-card button { border: 0; border-radius: 8px; background: var(--cyan); color: #102122; font-weight: 800; cursor: pointer; transition: transform .15s, filter .15s; }
-    .start-button { padding: 12px 17px; font-size: 12px; }
-    .start-button span { margin-left: 9px; font-size: 16px; }
-    .start-button:hover, .overlay-card button:hover { filter: brightness(1.08); transform: translateY(-1px); }
-    .scoreboard { display: grid; grid-template-columns: 1fr 100px 1fr; align-items: center; min-height: 102px; padding: 13px 22px; border: 1px solid var(--line); border-bottom: 0; border-radius: 12px 12px 0 0; background: rgba(23,30,45,.88); }
-    .player-score { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 16px; }
-    .right-score { text-align: right; }
-    .player-label { grid-column: 1 / -1; color: #aab4c4; font-size: 10px; letter-spacing: .12em; }
-    .player-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; vertical-align: 1px; }
-    .cyan { background: var(--cyan); box-shadow: 0 0 9px #66e4dc75; }
-    .coral { background: var(--coral); box-shadow: 0 0 9px #ff8a7875; }
-    .player-score strong { font-size: 38px; line-height: 1.15; font-variant-numeric: tabular-nums; }
-    .player-controls { color: #78859b; font-size: 10px; }
-    .match-status { display: grid; justify-items: center; gap: 7px; }
-    .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #344051; border-radius: 20px; color: #b7c1d0; font-size: 9px; letter-spacing: .08em; }
-    .status-light { width: 6px; height: 6px; border-radius: 50%; background: #818da0; }
-    .status-light.live { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
-    .versus { color: #59667b; font-family: 'DM Mono', monospace; font-size: 10px; }
-    .court-wrap { position: relative; overflow: hidden; border: 1px solid var(--line); background: #0c111b; }
-    canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
-    .overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,15,24,.38); transition: opacity .2s, visibility .2s; }
-    .overlay.hidden { visibility: hidden; opacity: 0; pointer-events: none; }
-    .overlay-card { width: min(90%, 330px); padding: 22px; border: 1px solid #344052; border-radius: 12px; background: rgba(23,30,45,.96); text-align: center; box-shadow: 0 18px 60px #0006; }
-    .overlay-icon { display: grid; place-items: center; width: 34px; height: 34px; margin: 0 auto 10px; border-radius: 10px; background: #66e4dc1c; color: var(--cyan); font-size: 20px; }
-    .overlay-card h2 { margin: 0; font-size: 19px; letter-spacing: -.03em; }
-    .overlay-card p { margin: 7px 0 17px; color: #a4afbf; font-size: 12px; }
-    .overlay-card button { padding: 10px 18px; font-size: 12px; }
-    .game-info { display: grid; grid-template-columns: 1fr 1.3fr 1fr; align-items: center; min-height: 82px; padding: 12px 20px; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px; background: rgba(23,30,45,.88); }
-    .info-label { display: block; margin-bottom: 5px; color: #8290a4; font-size: 9px; letter-spacing: .13em; }
-    .rally-count { font-size: 13px; }
-    .rally-count strong { font-size: 19px; font-variant-numeric: tabular-nums; }
-    .rally-count span { color: #9ba6b7; font-size: 11px; }
-    .bonus-info { display: flex; align-items: center; justify-content: center; gap: 9px; }
-    .bonus-icon { color: #ffc96a; font-size: 17px; }
-    .bonus-info strong { display: block; color: #e4c27e; font-size: 9px; letter-spacing: .08em; }
-    .bonus-info div span { display: block; margin-top: 3px; color: #99a5b7; font-size: 10px; }
-    .bonus-meter { overflow: hidden; width: 62px; height: 4px; margin-left: 4px; border-radius: 3px; background: #374254; }
-    .bonus-meter span { display: block; width: 0; height: 100%; border-radius: inherit; background: #ffc96a; transition: width .15s; }
-    .win-info { text-align: right; }
-    .win-info strong { font-size: 15px; }
-    .win-info strong span { color: #909caf; font-size: 10px; font-weight: 500; }
-    .footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 17px; color: #929eb1; }
-    .controls { display: flex; gap: 20px; font-size: 10px; white-space: nowrap; }
-    .controls span { display: flex; align-items: center; gap: 4px; }
-    kbd { display: inline-grid; place-items: center; min-width: 18px; height: 19px; padding: 0 4px; border: 1px solid #394457; border-radius: 4px; background: #1b2433; color: #d3d9e2; font-family: 'DM Mono', monospace; font-size: 9px; }
-    .footer-note { text-align: right; font-size: 9px; color: #758197; }
-    @media (max-width: 650px) {
-      .game-shell { width: min(100% - 24px, 1120px); padding-top: 18px; }
-      .topbar { padding-bottom: 20px; }
-      .intro { padding: 22px 0 17px; }
-      .start-button { padding: 10px 12px; }
-      .scoreboard { grid-template-columns: 1fr 55px 1fr; min-height: 84px; padding: 10px 12px; }
-      .player-score { column-gap: 6px; }
-      .player-score strong { font-size: 30px; }
-      .player-controls { font-size: 8px; }
-      .player-label { font-size: 8px; }
-      .game-info { grid-template-columns: .8fr 1.5fr .7fr; min-height: 74px; padding: 10px; }
-      .bonus-info { gap: 5px; }
-      .bonus-info strong { font-size: 8px; }
-      .bonus-info div span { font-size: 9px; }
-      .bonus-meter { width: 35px; margin-left: 0; }
-      .footer { align-items: flex-start; flex-direction: column; }
-      .footer-note { text-align: left; }
-    }
-    @media (max-width: 390px) {
-      .game-tag { font-size: 8px; }
-      .controls { gap: 10px; font-size: 9px; }
-      .bonus-meter { display: none; }
-      .bonus-info { justify-content: flex-start; }
-    }
+    /* A matching lane is a save (defender scores); a different lane gets past the paddle (shooter scores). */
+    .shooter-one:has(.shot[value="top"]:checked):has(.guard[value="middle"]:checked),.shooter-one:has(.shot[value="top"]:checked):has(.guard[value="bottom"]:checked),.shooter-one:has(.shot[value="middle"]:checked):has(.guard[value="top"]:checked),.shooter-one:has(.shot[value="middle"]:checked):has(.guard[value="bottom"]:checked),.shooter-one:has(.shot[value="bottom"]:checked):has(.guard[value="top"]:checked),.shooter-one:has(.shot[value="bottom"]:checked):has(.guard[value="middle"]:checked){counter-increment:p1score 1}
+    .shooter-one:has(.shot[value="top"]:checked):has(.guard[value="top"]:checked),.shooter-one:has(.shot[value="middle"]:checked):has(.guard[value="middle"]:checked),.shooter-one:has(.shot[value="bottom"]:checked):has(.guard[value="bottom"]:checked){counter-increment:p2score 1}
+    .shooter-two:has(.shot[value="top"]:checked):has(.guard[value="middle"]:checked),.shooter-two:has(.shot[value="top"]:checked):has(.guard[value="bottom"]:checked),.shooter-two:has(.shot[value="middle"]:checked):has(.guard[value="top"]:checked),.shooter-two:has(.shot[value="middle"]:checked):has(.guard[value="bottom"]:checked),.shooter-two:has(.shot[value="bottom"]:checked):has(.guard[value="top"]:checked),.shooter-two:has(.shot[value="bottom"]:checked):has(.guard[value="middle"]:checked){counter-increment:p2score 1}
+    .shooter-two:has(.shot[value="top"]:checked):has(.guard[value="top"]:checked),.shooter-two:has(.shot[value="middle"]:checked):has(.guard[value="middle"]:checked),.shooter-two:has(.shot[value="bottom"]:checked):has(.guard[value="bottom"]:checked){counter-increment:p1score 1}
+    .end-note{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:10px;color:#aeb9c9;font-size:12px;line-height:1.6}.end-note strong{color:var(--text)}
+    @media(max-width:600px){.shell{width:min(100% - 22px,960px);padding-top:16px}.intro{align-items:flex-start;flex-direction:column;gap:12px}.score{padding:10px}.choices{grid-template-columns:1fr}.round{padding:12px}.rule-pill{white-space:normal}.tag{font-size:8px}}
   </style>
 </head>
 <body>
-  <main class="game-shell">
-    <header class="topbar">
-      <a class="wordmark" href="./" aria-label="Rally Pong home"><span class="brand-mark" aria-hidden="true">●</span> RALLY<span class="wordmark-light">PONG</span></a>
-      <span class="game-tag">LOCAL MULTIPLAYER</span>
-    </header>
+  <main class="shell">
+    <header class="top"><div class="brand"><b>●</b> RALLY PONG</div><span class="tag">NO-JAVASCRIPT EDITION</span></header>
+    <section class="intro"><div><p class="eyebrow">A SIMPLE, TURN-BASED PONG</p><h1>Rally Pong</h1><p class="subtitle">Pick a shot. Read your opponent. Score the point.</p></div><span class="rule-pill">Play all 5 turns · high score wins</span></section>
 
-    <section class="intro" aria-labelledby="game-title">
-      <div>
-        <p class="eyebrow">ONE SCREEN. TWO PLAYERS. BIG RALLIES.</p>
-        <h1 id="game-title">Rally Pong</h1>
-        <p class="subtitle">Keep it alive. Make it count.</p>
-      </div>
-      <button id="start-button" class="start-button" type="button">Start game <span aria-hidden="true">↗</span></button>
+    <section class="scoreboard" aria-label="Live score">
+      <div class="score p1"><span class="score-name"><i></i>PLAYER 1 · SHOOTS TURNS 1, 3, 5</span><strong class="score-value" aria-label="Player 1 score"></strong></div>
+      <div class="score p2"><span class="score-name"><i></i>PLAYER 2 · SHOOTS TURNS 2, 4</span><strong class="score-value" aria-label="Player 2 score"></strong></div>
     </section>
 
-    <section class="scoreboard" aria-label="Scoreboard">
-      <div class="player-score left-score">
-        <span class="player-label"><span class="player-dot cyan"></span> PLAYER 1</span>
-        <strong id="left-score" aria-label="Player 1 score">0</strong>
-        <span class="player-controls">W / S</span>
-      </div>
-      <div class="match-status">
-        <span class="status-pill"><span class="status-light" id="status-light"></span><span id="status-text">READY</span></span>
-        <span class="versus">VS</span>
-      </div>
-      <div class="player-score right-score">
-        <span class="player-label"><span class="player-dot coral"></span> PLAYER 2</span>
-        <strong id="right-score" aria-label="Player 2 score">0</strong>
-        <span class="player-controls">↑ / ↓</span>
-      </div>
-    </section>
+    <aside class="instructions"><strong>How to play:</strong> In each turn, the shooter secretly picks a lane, then the defender picks where to block. If the lanes match, the defender saves and scores; if they differ, the shot gets through and the shooter scores. The score updates automatically as you make choices. Play locally together and don’t peek at the shooter’s choice!</aside>
 
-    <section class="court-wrap" aria-label="Pong court">
-      <canvas id="game" width="960" height="540" aria-label="Pong game. Player 1 uses W and S, Player 2 uses the up and down arrow keys."></canvas>
-      <div id="overlay" class="overlay">
-        <div class="overlay-card">
-          <span class="overlay-icon" aria-hidden="true">↗</span>
-          <h2 id="overlay-title">Ready to rally?</h2>
-          <p id="overlay-message">Press Start or Space to serve.</p>
-          <button id="overlay-button" type="button">Start rally</button>
-        </div>
-      </div>
-    </section>
+    <section class="round shooter-one" aria-labelledby="turn1"><h2 id="turn1"><span class="turn-number">TURN 01</span> Player 1 shoots <span class="turn-label">Player 2 defends</span></h2><div class="choices"><fieldset class="choice-group"><legend><strong>Player 1:</strong> choose a shot lane</legend><div class="options"><input class="shot" type="radio" name="r1shot" id="r1st" value="top"><label for="r1st">Top</label><input class="shot" type="radio" name="r1shot" id="r1sm" value="middle"><label for="r1sm">Middle</label><input class="shot" type="radio" name="r1shot" id="r1sb" value="bottom"><label for="r1sb">Bottom</label></div></fieldset><fieldset class="choice-group"><legend><strong>Player 2:</strong> choose a block lane</legend><div class="options"><input class="guard" type="radio" name="r1guard" id="r1gt" value="top"><label for="r1gt">Top</label><input class="guard" type="radio" name="r1guard" id="r1gm" value="middle"><label for="r1gm">Middle</label><input class="guard" type="radio" name="r1guard" id="r1gb" value="bottom"><label for="r1gb">Bottom</label></div></fieldset></div><p class="outcome"><span class="through">Shot gets through — Player 1 scores!</span><span class="saved">Saved — Player 2 scores!</span></p></section>
 
-    <section class="game-info" aria-label="Rally details">
-      <div class="rally-info">
-        <span class="info-label">CURRENT RALLY</span>
-        <span class="rally-count"><strong id="rally-count">0</strong> <span>hits</span></span>
-      </div>
-      <div class="bonus-info">
-        <span class="bonus-icon" aria-hidden="true">✦</span>
-        <div><strong>LONG RALLY BONUS</strong><span>10+ hits = 2 points</span></div>
-        <div class="bonus-meter" aria-label="Rally progress to bonus"><span id="bonus-progress"></span></div>
-      </div>
-      <div class="win-info"><span class="info-label">TO WIN</span><strong>11 <span>by 2</span></strong></div>
-    </section>
+    <section class="round shooter-two" aria-labelledby="turn2"><h2 id="turn2"><span class="turn-number">TURN 02</span> Player 2 shoots <span class="turn-label">Player 1 defends</span></h2><div class="choices"><fieldset class="choice-group"><legend><strong>Player 2:</strong> choose a shot lane</legend><div class="options"><input class="shot" type="radio" name="r2shot" id="r2st" value="top"><label for="r2st">Top</label><input class="shot" type="radio" name="r2shot" id="r2sm" value="middle"><label for="r2sm">Middle</label><input class="shot" type="radio" name="r2shot" id="r2sb" value="bottom"><label for="r2sb">Bottom</label></div></fieldset><fieldset class="choice-group"><legend><strong>Player 1:</strong> choose a block lane</legend><div class="options"><input class="guard" type="radio" name="r2guard" id="r2gt" value="top"><label for="r2gt">Top</label><input class="guard" type="radio" name="r2guard" id="r2gm" value="middle"><label for="r2gm">Middle</label><input class="guard" type="radio" name="r2guard" id="r2gb" value="bottom"><label for="r2gb">Bottom</label></div></fieldset></div><p class="outcome"><span class="through">Shot gets through — Player 2 scores!</span><span class="saved">Saved — Player 1 scores!</span></p></section>
 
-    <footer class="footer">
-      <div class="controls"><span><kbd>W</kbd><kbd>S</kbd> move Player 1</span><span><kbd>↑</kbd><kbd>↓</kbd> move Player 2</span></div>
-      <span class="footer-note">First to 11, win by 2. The rally bonus kicks in at 10 paddle hits.</span>
-    </footer>
+    <section class="round shooter-one" aria-labelledby="turn3"><h2 id="turn3"><span class="turn-number">TURN 03</span> Player 1 shoots <span class="turn-label">Player 2 defends</span></h2><div class="choices"><fieldset class="choice-group"><legend><strong>Player 1:</strong> choose a shot lane</legend><div class="options"><input class="shot" type="radio" name="r3shot" id="r3st" value="top"><label for="r3st">Top</label><input class="shot" type="radio" name="r3shot" id="r3sm" value="middle"><label for="r3sm">Middle</label><input class="shot" type="radio" name="r3shot" id="r3sb" value="bottom"><label for="r3sb">Bottom</label></div></fieldset><fieldset class="choice-group"><legend><strong>Player 2:</strong> choose a block lane</legend><div class="options"><input class="guard" type="radio" name="r3guard" id="r3gt" value="top"><label for="r3gt">Top</label><input class="guard" type="radio" name="r3guard" id="r3gm" value="middle"><label for="r3gm">Middle</label><input class="guard" type="radio" name="r3guard" id="r3gb" value="bottom"><label for="r3gb">Bottom</label></div></fieldset></div><p class="outcome"><span class="through">Shot gets through — Player 1 scores!</span><span class="saved">Saved — Player 2 scores!</span></p></section>
+
+    <section class="round shooter-two" aria-labelledby="turn4"><h2 id="turn4"><span class="turn-number">TURN 04</span> Player 2 shoots <span class="turn-label">Player 1 defends</span></h2><div class="choices"><fieldset class="choice-group"><legend><strong>Player 2:</strong> choose a shot lane</legend><div class="options"><input class="shot" type="radio" name="r4shot" id="r4st" value="top"><label for="r4st">Top</label><input class="shot" type="radio" name="r4shot" id="r4sm" value="middle"><label for="r4sm">Middle</label><input class="shot" type="radio" name="r4shot" id="r4sb" value="bottom"><label for="r4sb">Bottom</label></div></fieldset><fieldset class="choice-group"><legend><strong>Player 1:</strong> choose a block lane</legend><div class="options"><input class="guard" type="radio" name="r4guard" id="r4gt" value="top"><label for="r4gt">Top</label><input class="guard" type="radio" name="r4guard" id="r4gm" value="middle"><label for="r4gm">Middle</label><input class="guard" type="radio" name="r4guard" id="r4gb" value="bottom"><label for="r4gb">Bottom</label></div></fieldset></div><p class="outcome"><span class="through">Shot gets through — Player 2 scores!</span><span class="saved">Saved — Player 1 scores!</span></p></section>
+
+    <section class="round shooter-one" aria-labelledby="turn5"><h2 id="turn5"><span class="turn-number">TURN 05</span> Player 1 shoots <span class="turn-label">Player 2 defends</span></h2><div class="choices"><fieldset class="choice-group"><legend><strong>Player 1:</strong> choose a shot lane</legend><div class="options"><input class="shot" type="radio" name="r5shot" id="r5st" value="top"><label for="r5st">Top</label><input class="shot" type="radio" name="r5shot" id="r5sm" value="middle"><label for="r5sm">Middle</label><input class="shot" type="radio" name="r5shot" id="r5sb" value="bottom"><label for="r5sb">Bottom</label></div></fieldset><fieldset class="choice-group"><legend><strong>Player 2:</strong> choose a block lane</legend><div class="options"><input class="guard" type="radio" name="r5guard" id="r5gt" value="top"><label for="r5gt">Top</label><input class="guard" type="radio" name="r5guard" id="r5gm" value="middle"><label for="r5gm">Middle</label><input class="guard" type="radio" name="r5guard" id="r5gb" value="bottom"><label for="r5gb">Bottom</label></div></fieldset></div><p class="outcome"><span class="through">Shot gets through — Player 1 scores!</span><span class="saved">Saved — Player 2 scores!</span></p></section>
+
+    <p class="end-note"><strong>Scoring:</strong> Each turn awards one point. After turn 5, the higher score wins; ties are a draw. This version uses CSS-only scoring, so the original real-time controls and 10-hit long-rally bonus are not included. To replay, reload the page.</p>
   </main>
-
-  <script>
-    (() => {
-      'use strict';
-
-      const canvas = document.getElementById('game');
-      const ctx = canvas.getContext('2d');
-      const leftScoreEl = document.getElementById('left-score');
-      const rightScoreEl = document.getElementById('right-score');
-      const rallyCountEl = document.getElementById('rally-count');
-      const bonusProgressEl = document.getElementById('bonus-progress');
-      const statusText = document.getElementById('status-text');
-      const statusLight = document.getElementById('status-light');
-      const overlay = document.getElementById('overlay');
-      const overlayTitle = document.getElementById('overlay-title');
-      const overlayMessage = document.getElementById('overlay-message');
-      const overlayButton = document.getElementById('overlay-button');
-      const startButton = document.getElementById('start-button');
-
-      const W = canvas.width;
-      const H = canvas.height;
-      const PADDLE_W = 12;
-      const PADDLE_H = 92;
-      const BALL_R = 8;
-      const WIN_SCORE = 11;
-      const BONUS_HITS = 10;
-      const keys = new Set();
-
-      let leftScore = 0;
-      let rightScore = 0;
-      let rallyHits = 0;
-      let running = false;
-      let matchOver = false;
-      let pointTimer = null;
-      let lastTime = 0;
-      let leftY = (H - PADDLE_H) / 2;
-      let rightY = (H - PADDLE_H) / 2;
-      let ball = { x: W / 2, y: H / 2, vx: 5.2, vy: 2.2 };
-      let serveToward = 1;
-
-      function updateScoreboard() {
-        leftScoreEl.textContent = String(leftScore);
-        rightScoreEl.textContent = String(rightScore);
-        rallyCountEl.textContent = String(rallyHits);
-        bonusProgressEl.style.width = `${Math.min(rallyHits / BONUS_HITS, 1) * 100}%`;
-      }
-
-      function setStatus(text, isLive = false) {
-        statusText.textContent = text;
-        statusLight.classList.toggle('live', isLive);
-      }
-
-      function resetBall(direction = serveToward) {
-        ball = {
-          x: W / 2,
-          y: H / 2,
-          vx: 5.2 * direction,
-          vy: (Math.random() * 3.2) - 1.6
-        };
-      }
-
-      function showOverlay(title, message, buttonText = 'Start rally') {
-        overlayTitle.textContent = title;
-        overlayMessage.textContent = message;
-        overlayButton.textContent = buttonText;
-        overlay.classList.remove('hidden');
-      }
-
-      function hideOverlay() {
-        overlay.classList.add('hidden');
-      }
-
-      function startMatch() {
-        if (matchOver) {
-          leftScore = 0;
-          rightScore = 0;
-          rallyHits = 0;
-          matchOver = false;
-          leftY = rightY = (H - PADDLE_H) / 2;
-          serveToward = Math.random() < 0.5 ? -1 : 1;
-          updateScoreboard();
-        }
-        if (running) return;
-        if (pointTimer) {
-          clearTimeout(pointTimer);
-          pointTimer = null;
-        }
-        rallyHits = 0;
-        updateScoreboard();
-        resetBall();
-        running = true;
-        setStatus('IN PLAY', true);
-        hideOverlay();
-        lastTime = performance.now();
-        requestAnimationFrame(loop);
-      }
-
-      function finishMatch(winner) {
-        running = false;
-        matchOver = true;
-        setStatus('MATCH OVER');
-        showOverlay(`${winner} wins!`, `Final score: ${leftScore} – ${rightScore}. Ready for a rematch?`, 'Play again');
-      }
-
-      function awardPoint(scoringSide) {
-        if (!running) return;
-        running = false;
-        const points = rallyHits >= BONUS_HITS ? 2 : 1;
-        if (scoringSide === 'left') leftScore += points;
-        else rightScore += points;
-        serveToward = scoringSide === 'left' ? 1 : -1;
-        updateScoreboard();
-
-        const winner = leftScore >= WIN_SCORE && leftScore - rightScore >= 2
-          ? 'Player 1'
-          : rightScore >= WIN_SCORE && rightScore - leftScore >= 2
-            ? 'Player 2'
-            : null;
-
-        if (winner) {
-          finishMatch(winner);
-          return;
-        }
-
-        setStatus(points === 2 ? 'BONUS POINT' : 'POINT');
-        const scorer = scoringSide === 'left' ? 'Player 1' : 'Player 2';
-        const awardedMessage = points === 2 ? `${scorer} scores 2 — long rally bonus!` : `${scorer} scores a point.`;
-        showOverlay(points === 2 ? 'Bonus point!' : 'Point!', `${awardedMessage} Next serve is coming up.`, 'Continue');
-        rallyHits = 0;
-        updateScoreboard();
-        pointTimer = setTimeout(() => {
-          pointTimer = null;
-          startMatch();
-        }, 1400);
-      }
-
-      function movePaddles(dt) {
-        const speed = 440 * dt;
-        if (keys.has('w')) leftY -= speed;
-        if (keys.has('s')) leftY += speed;
-        if (keys.has('arrowup')) rightY -= speed;
-        if (keys.has('arrowdown')) rightY += speed;
-        leftY = Math.max(12, Math.min(H - PADDLE_H - 12, leftY));
-        rightY = Math.max(12, Math.min(H - PADDLE_H - 12, rightY));
-      }
-
-      function hitPaddle(paddleY, direction) {
-        const relativeHit = (ball.y - (paddleY + PADDLE_H / 2)) / (PADDLE_H / 2);
-        const angle = relativeHit * (Math.PI / 3);
-        const speed = Math.min(Math.hypot(ball.vx, ball.vy) * 1.045, 10.5);
-        ball.vx = Math.cos(angle) * speed * direction;
-        ball.vy = Math.sin(angle) * speed;
-        rallyHits += 1;
-        updateScoreboard();
-      }
-
-      function update(dt) {
-        movePaddles(dt);
-        ball.x += ball.vx * 60 * dt;
-        ball.y += ball.vy * 60 * dt;
-
-        if (ball.y - BALL_R <= 0) {
-          ball.y = BALL_R;
-          ball.vy = Math.abs(ball.vy);
-        } else if (ball.y + BALL_R >= H) {
-          ball.y = H - BALL_R;
-          ball.vy = -Math.abs(ball.vy);
-        }
-
-        const leftX = 34;
-        const rightX = W - 34 - PADDLE_W;
-        if (ball.vx < 0 && ball.x - BALL_R <= leftX + PADDLE_W && ball.x > leftX && ball.y + BALL_R >= leftY && ball.y - BALL_R <= leftY + PADDLE_H) {
-          ball.x = leftX + PADDLE_W + BALL_R;
-          hitPaddle(leftY, 1);
-        } else if (ball.vx > 0 && ball.x + BALL_R >= rightX && ball.x < rightX + PADDLE_W && ball.y + BALL_R >= rightY && ball.y - BALL_R <= rightY + PADDLE_H) {
-          ball.x = rightX - BALL_R;
-          hitPaddle(rightY, -1);
-        }
-
-        if (ball.x + BALL_R < 0) awardPoint('right');
-        else if (ball.x - BALL_R > W) awardPoint('left');
-      }
-
-      function roundedRect(x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.roundRect(x, y, width, height, radius);
-        ctx.fill();
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = '#0c111b';
-        ctx.fillRect(0, 0, W, H);
-
-        ctx.strokeStyle = '#222c3b';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([8, 12]);
-        ctx.beginPath();
-        ctx.moveTo(W / 2, 0);
-        ctx.lineTo(W / 2, H);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        const leftX = 34;
-        const rightX = W - 34 - PADDLE_W;
-        ctx.shadowBlur = 18;
-        ctx.shadowColor = '#66e4dc88';
-        ctx.fillStyle = '#66e4dc';
-        roundedRect(leftX, leftY, PADDLE_W, PADDLE_H, 6);
-        ctx.shadowColor = '#ff8a7888';
-        ctx.fillStyle = '#ff8a78';
-        roundedRect(rightX, rightY, PADDLE_W, PADDLE_H, 6);
-
-        ctx.shadowBlur = 18;
-        ctx.shadowColor = '#f2f5fa88';
-        ctx.fillStyle = '#f2f5fa';
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-      function loop(now) {
-        if (!running) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.032);
-        lastTime = now;
-        update(dt);
-        draw();
-        if (running) requestAnimationFrame(loop);
-      }
-
-      function frame() {
-        draw();
-        requestAnimationFrame(frame);
-      }
-
-      function onKeyDown(event) {
-        const key = event.key.toLowerCase();
-        if (['arrowup', 'arrowdown', ' '].includes(key)) event.preventDefault();
-        keys.add(key);
-        if ((key === ' ' || key === 'enter') && !running && !matchOver) startMatch();
-        if ((key === ' ' || key === 'enter') && matchOver) startMatch();
-      }
-
-      function onKeyUp(event) {
-        keys.delete(event.key.toLowerCase());
-      }
-
-      window.addEventListener('keydown', onKeyDown);
-      window.addEventListener('keyup', onKeyUp);
-      window.addEventListener('blur', () => keys.clear());
-      startButton.addEventListener('click', startMatch);
-      overlayButton.addEventListener('click', startMatch);
-
-      updateScoreboard();
-      setStatus('READY');
-      draw();
-      requestAnimationFrame(frame);
-    })();
-  </script>
 </body>
 </html>
